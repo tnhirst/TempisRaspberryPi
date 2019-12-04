@@ -31,12 +31,15 @@ def send_data():
     print("Sending count: %i" %(count))
     to_send = count
     count = 0
-    # TODO: Try this, and if it fails, add to_send back to count
-    response = requests.post(
-        'https://tempis-messages.servicebus.windows.net/production-counts/messages',
-        headers={'Authorization':token['token']},
-        json={'quantity':to_send,'sensorId':id,'timestamp':datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")}
-    )
+    try:
+        response = requests.post(
+            'https://tempis-messages.servicebus.windows.net/production-counts/messages',
+            headers={'Authorization':token['token']},
+            json={'quantity':to_send,'sensorId':id,'timestamp':datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")}
+        )
+    except requests.exceptions.ConnectionError as e:
+        print("Error sending update to Tempis, retaining count to send later")
+        count = count + to_send
     pass
 
 
