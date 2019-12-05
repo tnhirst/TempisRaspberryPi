@@ -35,7 +35,8 @@ def send_data():
         response = requests.post(
             'https://tempis-messages.servicebus.windows.net/production-counts/messages',
             headers={'Authorization':token['token']},
-            json={'quantity':to_send,'sensorId':id,'timestamp':datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")}
+            json={'quantity':to_send,'sensorId':id,'timestamp':datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")},
+            timeout=5
         )
     except requests.exceptions.ConnectionError as e:
         print("Error sending update to Tempis, retaining count to send later")
@@ -51,7 +52,8 @@ def refresh_access_token():
         try:
             response = requests.post(
                 'https://www.tempis.co.uk/api/SensorTokens', 
-                json={'Id':id,'Secret':secret}
+                json={'Id':id,'Secret':secret},
+                timeout=5
             )
             token = response.json()
             if response.status_code == 200:
