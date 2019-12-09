@@ -4,6 +4,7 @@ import datetime
 import time
 import json
 import requests
+import sys
 from dateutil.parser import parse
 from gpiozero import DigitalInputDevice
 from twisted.internet import task, reactor
@@ -41,7 +42,12 @@ def send_data():
     except requests.exceptions.ConnectionError as e:
         print("Error sending update to Tempis, retaining count to send later")
         count = count + to_send
-    pass
+    except:
+        e = sys.exc_info()[0]
+        print("Exception encountered sending data")
+        print(e)
+    finally:
+        return
 
 
 def refresh_access_token():
@@ -63,7 +69,11 @@ def refresh_access_token():
         except requests.exceptions.ConnectionError as e:
             print("Error connecting to Tempis")
             time.sleep(5)
-    return
+        except:
+            e = sys.exc_info()[0]
+            print("Exception encountered getting token")
+            print(e)
+
     
 
 def increment_count():
