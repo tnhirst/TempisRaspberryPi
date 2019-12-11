@@ -5,6 +5,7 @@ import time
 import json
 import requests
 import sys
+import os
 from dateutil.parser import parse
 from gpiozero import DigitalInputDevice
 from twisted.internet import task, reactor
@@ -21,6 +22,7 @@ def ensure_config(setting_name, setting_description):
 def send_data():
     global token
     global count
+    global sending_errors
     if token is None:
         print("No access token yet, not sending data")
         return
@@ -39,13 +41,22 @@ def send_data():
             json={'quantity':to_send,'sensorId':id,'timestamp':datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")},
             timeout=5
         )
-    except requests.exceptions.ConnectionError as e:
-        print("Error sending update to Tempis, retaining count to send later")
-        count = count + to_send
+        sending_errors = 0
+    #except requests.exceptions.ConnectionError as e:
+    #    print("Error sending update to Tempis, retaining count to send later")
+    #    count = count + to_send
     except:
         e = sys.exc_info()[0]
-        print("Exception encountered sending data")
         print(e)
+        print("Error sending update to Tempis, retaining count to send later")
+        count = count + to_send
+        sending_errors = sending_errors + 1
+        if sending_errors > 10:
+            print("10 errors in a row now, attempting to cycle WiFi")
+            os.system("/sbin/ifdown 'wlan0'")
+            time.sleep(5)
+            os.system("/sbin/ifup --force 'wlan0'")
+            print("Wifi restarted")
     finally:
         return
 
@@ -97,6 +108,7 @@ interval = ensure_config('interval', 'Interval')
 # Global state variables
 token = None
 count = 0
+sending_errors = 0
 
 # Actions
 print("")
