@@ -53,9 +53,9 @@ def send_data():
         sending_errors = sending_errors + 1
         if sending_errors > 10:
             print("10 errors in a row now, attempting to cycle WiFi")
-            os.system("/sbin/ifdown 'wlan0'")
+            os.system("sudo ip link set wlan0 down")
             time.sleep(5)
-            os.system("/sbin/ifup --force 'wlan0'")
+            os.system("sudo ip link set wlan0 up")
             print("Wifi restarted")
     finally:
         return
