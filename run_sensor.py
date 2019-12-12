@@ -1,4 +1,3 @@
-
 import argparse
 import datetime
 import time
@@ -65,6 +64,7 @@ def refresh_access_token():
     global token
     print("Getting access token")
     retrieved = False
+    connecting_errors = 0
     while not retrieved:
         try:
             response = requests.post(
@@ -77,13 +77,24 @@ def refresh_access_token():
                 retrieved = True
             token['expires'] = parse(token['expires'])
             print("Access token retrieved")
+            connecting_errors = 0
         except requests.exceptions.ConnectionError as e:
             print("Error connecting to Tempis")
             time.sleep(5)
+            connecting_errors = connecting_errors + 1
         except:
             e = sys.exc_info()[0]
             print("Exception encountered getting token")
             print(e)
+            connecting_errors = connecting_errors + 1
+        finally:
+            if connecting_errors > 10:
+                print("10 errors in a row now, attempting to cycle WiFi")
+                os.system("sudo ip link set wlan0 down")
+                time.sleep(5)
+                os.system("sudo ip link set wlan0 up")
+                print("Wifi restarted")
+
 
     
 
